@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>战棋地图编辑器</title>
+    <link rel="stylesheet" href="CSS/editor_style.css">
+</head>
+<body>
+<div class="editor-container">
+    <div class="canvas-area">
+        <div class="canvas-wrapper">
+            <canvas id="editorCanvas"></canvas>
+        </div>
+        <div class="canvas-toolbar">
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <span class="coord-badge" id="coordInfo">0, 0</span>
+                <span class="coord-badge" id="mapInfo">30 x 20</span>
+                <span class="coord-badge" id="zoomInfo">100%</span>
+            </div>
+            <div class="mode-switch">
+                <button class="mode-btn active" id="modeEditBtn">✏️ 编辑</button>
+                <button class="mode-btn" id="modeMoveBtn">✋ 移动&选择</button>
+            </div>
+        </div>
+    </div>
+    <div class="toolbar">
+        <h3>🗺️ 地图设置</h3>
+        <div style="margin-bottom:6px;">
+            <input type="text" id="mapTitleInput" placeholder="地图名称" style="width:100%;">
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+            <span style="color:#ccc; font-size:13px; white-space:nowrap;">地表</span>
+            <select id="surfaceTypeSelect" style="flex:1;">
+                <option value="default">🌿 默认绿</option>
+                <option value="ice">🧊 冰原</option>
+                <option value="sand">🏜️ 沙漠</option>
+                <option value="grass">🌱 草原</option>
+                <option value="empty">⬜ 空白</option>
+            </select>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+            <input type="number" id="mapWidth" min="5" max="300" value="30" style="width:70px;">
+            <span style="color:#ccc;">x</span>
+            <input type="number" id="mapHeight" min="5" max="300" value="20" style="width:70px;">
+            <button class="btn small" id="resizeMapBtn">调整尺寸</button>
+        </div>
+        <div style="display:flex; gap:8px;">
+            <button class="btn small" id="resetViewBtn">🔄 重置</button>
+            <button class="btn small" id="toggleFullscreenBtn">全屏</button>
+        </div>
+        <div class="btn-group">
+            <button class="btn small" id="clearMapBtn">🧹 清空海洋</button>
+            <button class="btn small" id="fillLandBtn">🟫 填充陆地</button>
+        </div>
+
+        <div class="paint-mode-toggle">
+            <button class="paint-mode-btn active" id="brushModeBtn">✏️ 笔刷</button>
+            <button class="paint-mode-btn" id="rectModeBtn">⬜ 矩形</button>
+        </div>
+        <div class="slider-label" id="brushSizeContainer">
+            <span>🖌️ 画笔大小</span>
+            <input type="range" id="brushSize" min="1" max="5" value="1" style="flex:1;">
+            <span id="brushSizeValue">1</span>
+        </div>
+
+        <h3>🎨 势力管理</h3>
+        <div id="factionBrushContainer" class="btn-group"></div>
+        <div class="btn-group">
+            <button class="btn brush-btn danger" data-brush="eraseOwner">🧽 擦除归属</button>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:4px;">
+            <button class="btn small" id="addFactionBtn">➕ 新增势力</button>
+            <button class="btn small" id="manageFactionBtn" disabled>⚙️ 管理选中势力</button>
+            <button class="btn small" id="editTurnOrderBtn">🔄 阵营顺序</button>
+        </div>
+        <div style="margin:6px 0 4px; color:#bdd0ec; font-size:13px;">
+            当前选中: <span id="currentFactionLabel">无</span>
+            <span id="currentTurnFactionLabel" style="margin-left:8px;"></span>
+        </div>
+
+        <h3>✏️ 画笔工具</h3>
+        <div class="btn-group" style="flex-direction:column; gap:4px;" id="staticBrushGroup">
+            <div style="display:flex; gap:6px;">
+                <button class="btn brush-btn" data-brush="terrainLand">🟫 陆地</button>
+                <button class="btn brush-btn" data-brush="terrainSea">💧 海洋</button>
+                <button class="btn brush-btn" data-brush="terrainMountain">⛰️ 山地</button>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <button class="btn brush-btn" data-brush="city">🏙️ 放置城市</button>
+                <button class="btn brush-btn" data-brush="eraseCity">❌ 移除城市</button>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <button class="btn brush-btn" data-brush="unit">⚔️ 放置单位</button>
+                <button class="btn brush-btn" data-brush="eraseUnit">❌ 移除单位</button>
+                <button class="btn small" id="editUnitBtn" disabled>编辑单位</button>
+                <button class="btn small" id="editCityBtn" disabled>编辑城市</button>
+            </div>
+        </div>
+
+        <div class="file-section">
+            <h3>📁 文件</h3>
+            <div class="btn-group">
+                <button class="btn" id="exportJsonBtn">⬇️ 导出 JSON</button>
+                <button class="btn" id="importJsonBtn">⬆️ 导入 JSON</button>
+            </div>
+            <div class="autosave-toggle">
+                <label class="switch">
+                    <input type="checkbox" id="autosaveCheckbox" checked>
+                    <span class="slider"></span>
+                </label>
+                <span class="autosave-label">自动保存</span>
+            </div>
+            <input type="file" id="importFileInput" accept=".json,application/json" style="display:none;">
+        </div>
+    </div>
+</div>
+
+<script src="JS/editor_constants.js"></script>
+<script src="JS/editor_main.js"></script>
+<script src="JS/editor_render.js"></script>
+<script src="JS/editor_input.js"></script>
+<script src="JS/editor_tools.js"></script>
+<script src="JS/editor_ui.js"></script>
+</body>
+</html>

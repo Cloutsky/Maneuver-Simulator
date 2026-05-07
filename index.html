@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>沙盘战局-策略推演模拟器</title>
+    <link rel="stylesheet" href="CSS/style.css">
+</head>
+<body>
+    <!-- ==================== 主菜单 ==================== -->
+    <div id="mainMenu">
+        <div class="menu-bg">
+            <div class="bg-hex"></div>
+            <div class="bg-contour"></div>
+            <div class="bg-glow bg-glow-red"></div>
+            <div class="bg-glow bg-glow-blue"></div>
+            <div class="bg-glow bg-glow-gold"></div>
+        </div>
+        <div class="menu-content">
+            <div class="menu-logo-icon">
+                <svg viewBox="0 0 80 80" width="64" height="64">
+                    <polygon points="40,4 72,22 72,58 40,76 8,58 8,22" fill="none" stroke="#8a9aaa" stroke-width="2"/>
+                    <polygon points="40,12 64,26 64,54 40,68 16,54 16,26" fill="none" stroke="#6b7e90" stroke-width="1.5"/>
+                    <polygon points="40,20 56,30 56,50 40,60 24,50 24,30" fill="none" stroke="#5a6b7c" stroke-width="1"/>
+                </svg>
+            </div>
+            <h1 class="menu-title">沙&nbsp;盘&nbsp;战&nbsp;局</h1>
+            <p class="menu-subtitle">策略推演模拟器</p>
+            <p class="menu-english">MANEUVER SIMULATOR</p>
+            <div class="menu-buttons">
+                <button class="menu-btn" id="btnContinue" style="display:none;" title="">
+                    <span class="btn-icon">▶</span>
+                    <span class="btn-text">继续游戏</span>
+                    <span class="btn-hint" id="continueHint"></span>
+                </button>
+                <div class="new-game-wrapper">
+                    <button class="menu-btn" id="btnNewGame">
+                        <span class="btn-icon">⚔</span>
+                        <span class="btn-text">新游戏</span>
+                        <span class="btn-arrow">▾</span>
+                    </button>
+                    <div class="submenu" id="newGameSubmenu">
+                        <button class="menu-btn sub-btn" id="btnFreeMode">
+                            <span class="btn-icon">🎯</span>
+                            <span class="btn-text">自由模式</span>
+                        </button>
+                        <button class="menu-btn sub-btn disabled" disabled>
+                            <span class="btn-icon">📖</span>
+                            <span class="btn-text">战役模式</span>
+                            <span class="btn-tag">不可用</span>
+                        </button>
+                        <button class="menu-btn sub-btn disabled" disabled>
+                            <span class="btn-icon">⚡</span>
+                            <span class="btn-text">对战模式</span>
+                            <span class="btn-tag">不可用</span>
+                        </button>
+                    </div>
+                </div>
+                <button class="menu-btn" id="btnMapEditor">
+                    <span class="btn-icon">🗺</span>
+                    <span class="btn-text">地图编辑器</span>
+                </button>
+                <button class="menu-btn" id="btnSettings">
+                    <span class="btn-icon">⚙</span>
+                    <span class="btn-text">游戏设置</span>
+                </button>
+                <button class="menu-btn" id="btnAbout">
+                    <span class="btn-icon">ℹ</span>
+                    <span class="btn-text">关于</span>
+                </button>
+            </div>
+            <p class="menu-version">beta1.0.0</p>
+        </div>
+
+        <!-- 关于面板 -->
+        <div class="menu-panel" id="aboutPanel">
+            <div class="menu-panel-card">
+                <div class="menu-panel-header">
+                    <h3>关于</h3>
+                    <button class="menu-panel-close" id="btnAboutClose">✕</button>
+                </div>
+                <div class="menu-panel-body" id="aboutContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 地图选择面板（独立于主菜单，在游戏内也可使用） -->
+    <div class="menu-panel" id="mapSelectPanel">
+        <div class="menu-panel-card">
+            <div class="menu-panel-header">
+                <h3>选择地图</h3>
+                <button class="menu-panel-close" id="btnMapSelectClose">✕</button>
+            </div>
+            <div class="menu-panel-body map-select-body">
+                <button class="menu-select-btn" id="mapSelectTestMap">
+                    <span class="btn-icon">🧪</span>
+                    <span class="btn-text">测试地图</span>
+                    <span class="btn-hint">默认沙盘</span>
+                </button>
+                <button class="menu-select-btn" id="mapSelectOfficial">
+                    <span class="btn-icon">📁</span>
+                    <span class="btn-text">官方地图</span>
+                    <span class="btn-arrow">▾</span>
+                </button>
+                <div class="map-official-list" id="mapOfficialList"></div>
+                <button class="menu-select-btn" id="mapSelectLocal">
+                    <span class="btn-icon">📂</span>
+                    <span class="btn-text">打开本地文件</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- 地图加载过渡遮罩 -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">地图加载中...</p>
+        </div>
+        <div class="canvas-wrapper">
+            <canvas id="warCanvas"></canvas>
+        </div>
+
+        <div class="info-panel" id="infoPanel">
+            <div class="legend-row">
+                <div class="faction-legend" id="factionLegendContainer"></div>
+            </div>
+            <div class="info-bars-row">
+                <div class="info-bar">🔍 <span id="zoomDisplay">100%</span></div>
+                <div class="info-bar">📍 <span id="coordDisplay">--, --</span></div>
+                <div class="info-bar" id="roundBar">🔄 <span id="roundDisplay">第1轮</span></div>
+                <button class="round-gear-btn" id="roundGearBtn" title="游戏设置">⚙</button>
+            </div>
+            <div class="info-bars-row info-bars-subrow">
+                <div class="info-bar" id="prodBar">产能: <span id="prodDisplay">0/0</span></div>
+                <div class="info-bar" id="popBar">人口: <span id="popDisplay">0/0</span></div>
+                <div class="info-bar" id="statusBar"><span id="statusHint">本回合未行动</span></div>
+            </div>
+            <div class="file-toolbar">
+                <button class="file-btn" id="manageFactionBtn">⚙️ 势力管理</button>
+                <button class="file-btn" id="campManageBtn">🏕️ 阵营管理</button>
+                <button class="file-btn" id="loadMapBtn">📂 打开地图</button>
+                <button class="file-btn" id="saveMapBtn">💾 保存地图</button>
+                <button class="file-btn" id="toggleFullscreenBtn">全屏</button>
+                <button class="file-btn" id="eventLogBtn">📜 本局记录</button>
+                <input type="file" id="fileInput" accept=".json,application/json" style="display:none;">
+            </div>
+            <div class="json-summary" id="jsonSummary"></div>
+        </div>
+
+        <div class="floating-controls" id="floatingControls">
+            <button class="float-btn" id="toggleUIBtn" title="隐藏面板 [X]">
+                <svg viewBox="0 0 24 24"><path class="icon-eye" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/><path class="icon-eye-off" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+            <button class="float-btn" id="resetViewBtn" title="重置视角 [Esc]">
+                <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 3v5h5"/><circle cx="12" cy="12" r="1"/></svg>
+            </button>
+        </div>
+
+        <button class="undo-btn hidden" id="undoBtn" title="撤销上一步 [Z]">
+            <svg viewBox="0 0 24 24">
+                <polyline points="1 4 1 10 7 10" />
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+            </svg>
+        </button>
+        <button class="end-turn-btn" id="endTurnBtn" title="结束回合 [Enter]">
+            <svg viewBox="0 0 24 24">
+                <polyline points="9 18 15 12 9 6" />
+                <polyline points="15 18 21 12 15 6" />
+            </svg>
+        </button>
+        <button class="prod-btn hidden" id="prodBtn" title="生产 [C]">＋</button>
+        <button class="info-btn hidden" id="infoBtn" title="信息 [I]">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                <line x1="12" y1="16" x2="12" y2="12" stroke="currentColor" stroke-width="2"/>
+                <circle cx="12" cy="8" r="1.5" fill="currentColor"/>
+            </svg>
+        </button>
+
+        <button class="cess-cancel-btn hidden" id="cessCancelBtn" title="取消割让">
+            <svg viewBox="0 0 24 24">
+                <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="3"/>
+                <line x1="6" y1="18" x2="18" y2="6" stroke="currentColor" stroke-width="3"/>
+            </svg>
+        </button>
+        <button class="cess-confirm-btn hidden" id="cessConfirmBtn" title="确认割让">
+            <svg viewBox="0 0 24 24">
+                <polyline points="4 12 10 18 20 6" stroke="currentColor" stroke-width="3" fill="none"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- 设置面板（在主菜单和游戏中均可显示） -->
+    <div class="menu-panel" id="settingsPanel">
+        <div class="menu-panel-card">
+            <div class="menu-panel-header">
+                <h3>游戏设置</h3>
+                <button class="menu-panel-close" id="btnSettingsClose">✕</button>
+            </div>
+            <div class="menu-panel-body settings-body">
+                <div class="settings-item">
+                    <span class="settings-label">显示城市名</span>
+                    <label class="settings-toggle">
+                        <input type="checkbox" id="settingShowCityNames" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="settings-item">
+                    <span class="settings-label">势力地块颜色不透明度</span>
+                    <div class="settings-range-row">
+                        <input type="range" id="settingOpacity" min="10" max="255" value="128">
+                        <span class="settings-range-value" id="settingOpacityValue">50%</span>
+                    </div>
+                </div>
+                <div class="settings-item" id="settingExportRow" style="display:none">
+                    <span class="settings-label">导出地图为 PNG（实验性）</span>
+                    <button class="settings-export-btn" id="settingExportBtn">导出</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script src="JS/constants.js"></script>
+<script src="JS/utils.js"></script>
+<script src="JS/map.js"></script>
+<script src="JS/pathfinding.js"></script>
+<script src="JS/production.js"></script>
+<script src="JS/combat.js"></script>
+<script src="JS/faction.js"></script>
+<script src="JS/persistence.js"></script>
+<script src="JS/gameLogic.js"></script>
+<script src="JS/viewport.js"></script>
+<script src="JS/render_utils.js"></script>
+<script src="JS/render.js"></script>
+<script src="JS/input.js"></script>
+<script src="JS/maplist.js"></script>
+<script src="JS/cession.js"></script>
+<script src="JS/ui_modals/event_log.js"></script>
+<script src="JS/ui_modals/unit_info.js"></script>
+<script src="JS/ui_modals/surrender.js"></script>
+<script src="JS/ui_modals/faction_manage.js"></script>
+<script src="JS/ui_modals/camp_manage.js"></script>
+<script src="JS/ui_modals/import_export.js"></script>
+<script src="JS/ui.js"></script>
+<script src="JS/screenshot.js"></script>
+<script src="JS/mainMenu.js"></script>
+<script src="JS/main.js"></script>
+</body>
+</html>
